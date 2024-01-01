@@ -11,22 +11,22 @@ import SwiftUI
 
 public struct Changelog: Identifiable, Equatable {
     
-    public var id: UUID = UUID()
-    var title: String? = nil
-    let version: String
-    let features: [Feature]
+    public let id: UUID = UUID()
+    public var title: String? = nil
+    public let version: String
+    public let features: [Feature]
     
     public static func ==(lhs: Changelog, rhs: Changelog) -> Bool {
         lhs.id == rhs.id
     }
     
-    struct Feature: Identifiable, Equatable {
+    public struct Feature: Identifiable, Equatable {
         
-        var id: UUID = UUID()
-        let symbol: String
-        let title: String
-        let description: String
-        var color: Color?
+        public let id: UUID = UUID()
+        public let symbol: String
+        public let title: String
+        public let description: String
+        public var color: Color?
         
         public static func ==(lhs: Feature, rhs: Feature) -> Bool {
             lhs.id == rhs.id

@@ -51,8 +51,8 @@ struct FeatureView: View {
 public struct ChangelogView: View {
     
     @Environment(\.dismiss) private var dismiss
-    let changelog: Changelog
-    var style: Style
+    public let changelog: Changelog
+    public var style: Style
     
     public var body: some View {
         VStack {
@@ -91,37 +91,99 @@ public struct ChangelogView: View {
 }
 
 
+// MARK: - View modifier
+
+public extension View {
+    
+    func changelogView(changelog: Changelog, style: ChangelogView.Style = ChangelogView.Style(), show: Binding<Bool>) -> some View {
+        self.sheet(isPresented: show, content: {
+            ChangelogView(changelog: changelog, style: style)
+        })
+    }
+}
+
+
 // MARK: - Style
 
-public extension ChangelogView {
-    struct Style {
-        var view: View                      = View()
-        var title: Title                    = Title()
-        var features: Features              = Features()
-        var primaryAction: PrimaryAction    = PrimaryAction()
+extension ChangelogView {
+    public struct Style {
+        public var view: View                      = View()
+        public var title: Title                    = Title()
+        public var features: Features              = Features()
+        public var primaryAction: PrimaryAction    = PrimaryAction()
         
-        struct View {
-            var spacingBetweenFeatures: CGFloat = 10
+        public init(
+            view: View = View(),
+            title: Title = Title(),
+            features: Features = Features(),
+            primaryAction: PrimaryAction = PrimaryAction())
+        {
+            self.view = view
+            self.title = title
+            self.features = features
+            self.primaryAction = primaryAction
         }
         
-        struct Title {
-            var font: Font      = .largeTitle.weight(.heavy)
-            var color: Color    = Color(UIColor.label)
+        public struct View {
+            public var spacingBetweenFeatures: CGFloat
+            
+            public init(spacingBetweenFeatures: CGFloat = 10) {
+                self.spacingBetweenFeatures = spacingBetweenFeatures
+            }
         }
         
-        struct Features {
-            var titleFont: Font                 = .headline
-            var descriptionFont: Font           = .subheadline
-            var titleTextColor: Color           = Color(UIColor.label)
-            var descriptionTextColor: Color     = Color(UIColor.label)
+        public struct Title {
+            public var font: Font
+            public var color: Color
+            
+            public init(
+                font: Font      = .largeTitle.weight(.heavy),
+                color: Color    = Color(UIColor.label))
+            {
+                self.font = font
+                self.color = color
+            }
         }
         
-        struct PrimaryAction {
-            var font: Font                              = .title3.weight(.bold)
-            var cornerRadius: CGFloat                   = 14
-            var backgroundColor: Color                  = .accentColor
-            var backgroundGradient: LinearGradient?
-            var textColor: Color                        = .white
+        public struct Features {
+            public var titleFont: Font
+            public var descriptionFont: Font
+            public var titleTextColor: Color
+            public var descriptionTextColor: Color
+            
+            public init(
+                titleFont: Font                 = .headline,
+                descriptionFont: Font           = .subheadline,
+                titleTextColor: Color           = Color(UIColor.label),
+                descriptionTextColor: Color     = Color(UIColor.label))
+            {
+                self.titleFont = titleFont
+                self.descriptionFont = descriptionFont
+                self.titleTextColor = titleTextColor
+                self.descriptionTextColor = descriptionTextColor
+            }
+        }
+        
+        public struct PrimaryAction {
+            public var font: Font
+            public var cornerRadius: CGFloat
+            public var backgroundColor: Color
+            public var backgroundGradient: LinearGradient?
+            public var textColor: Color
+            
+            public init(
+                font: Font                          = .title3.weight(.bold),
+                cornerRadius: CGFloat               = 14,
+                backgroundColor: Color              = .accentColor,
+                backgroundGradient: LinearGradient? = nil,
+                textColor: Color                    = .white)
+            {
+                self.font = font
+                self.cornerRadius = cornerRadius
+                self.backgroundColor = backgroundColor
+                self.backgroundGradient = backgroundGradient
+                self.textColor = textColor
+            }
         }
     }
 }
