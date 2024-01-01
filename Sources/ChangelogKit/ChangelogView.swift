@@ -37,22 +37,28 @@ struct FeatureView: View {
             .padding(.leading)
         }
         .padding()
-//        .background {
-//            RoundedRectangle(cornerRadius: 14)
-//                .fill(.shadow(.inner(radius: 4)))
-//                .foregroundStyle(.white.opacity(0.1))
-//        }
     }
 }
 
 
 // MARK: - Changelog View
 
+/// The `ChangelogView` is the view that is dedicated to the rendering of a `Changelog` object.
 public struct ChangelogView: View {
     
     @Environment(\.dismiss) private var dismiss
+    /// The changelog object that the view has to render.
     public let changelog: Changelog
+    /// The style of the user interface of the view.
     public var style: Style
+    /// The action to perform when the view is dimissed. It is an optional value.
+    public var onDismiss: (() -> Void)?
+    
+    public init(changelog: Changelog, style: Style = ChangelogView.Style(), onDismiss: (() -> Void)? = nil) {
+        self.changelog = changelog
+        self.style = style
+        self.onDismiss = onDismiss
+    }
     
     public var body: some View {
         VStack {
@@ -68,9 +74,10 @@ public struct ChangelogView: View {
             .scrollBounceBehavior(.basedOnSize)
             
             Button(action: {
-                print("done")
+                dismiss()
+                onDismiss?()
             }, label: {
-                Text("Done")
+                Text("Continue")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background {
@@ -95,10 +102,37 @@ public struct ChangelogView: View {
 
 public extension View {
     
-    func changelogView(changelog: Changelog, style: ChangelogView.Style = ChangelogView.Style(), show: Binding<Bool>) -> some View {
+    /// Show the changelog view when the binding value is `true`.
+    /// - Parameters:
+    ///   - changelog: The changelog object to render.
+    ///   - style: The style of the user interface.
+    ///   - show: The binding value used to show the view.
+    ///   - onDismiss: The code to perform when view is dismissed. Default is `nil`.
+    /// - Returns: A new view.
+    func changelogView(
+        changelog: Changelog,
+        style: ChangelogView.Style = ChangelogView.Style(),
+        show: Binding<Bool>,
+        onDismiss: (() -> Void)? = nil) -> some View
+    {
         self.sheet(isPresented: show, content: {
-            ChangelogView(changelog: changelog, style: style)
+            ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
         })
+    }
+}
+
+
+// MARK: - On dismiss
+
+public extension ChangelogView {
+    
+    /// Perform code when view is dismissed.
+    /// - Parameter action: The code to perform when a changelog view is dismissed.
+    /// - Returns: The changelog view.
+    func onDismiss(_ action: @escaping () -> Void) -> ChangelogView {
+        var new = self
+        new.onDismiss = action
+        return new
     }
 }
 
@@ -106,10 +140,16 @@ public extension View {
 // MARK: - Style
 
 extension ChangelogView {
+    
+    /// This structure define the interface of the `ChangelogView`.
     public struct Style {
+        /// The struct `View` that defines the attributes of the entire view.
         public var view: View                      = View()
+        /// The struct `Title` that defines the attributes of the view's title.
         public var title: Title                    = Title()
+        /// The struct `Features` that defines the attributes of the features view.
         public var features: Features              = Features()
+        /// The struct `PrimaryAction` that defines the attributes of the main button.
         public var primaryAction: PrimaryAction    = PrimaryAction()
         
         public init(
@@ -124,7 +164,9 @@ extension ChangelogView {
             self.primaryAction = primaryAction
         }
         
+        /// The attributes related to the entire view.
         public struct View {
+            /// The spacing between every feature in the list.
             public var spacingBetweenFeatures: CGFloat
             
             public init(spacingBetweenFeatures: CGFloat = 10) {
@@ -132,10 +174,17 @@ extension ChangelogView {
             }
         }
         
+        /// The attributes related to the view's title.
         public struct Title {
+            /// The font of the title.
             public var font: Font
+            /// The color of the title.
             public var color: Color
             
+            /// Create a new instance of `Title`.
+            /// - Parameters:
+            ///   - font: The font of the title. Default is `.largeTitle.weight(.heavy)`.
+            ///   - color: The color of the title. Default is `Color(UIColor.label)`.
             public init(
                 font: Font      = .largeTitle.weight(.heavy),
                 color: Color    = Color(UIColor.label))
@@ -145,12 +194,23 @@ extension ChangelogView {
             }
         }
         
+        /// The attributes related to the single features.
         public struct Features {
+            /// The font of the feature's title.
             public var titleFont: Font
+            /// The font of the feature's description.
             public var descriptionFont: Font
+            /// The text color of the feature's title.
             public var titleTextColor: Color
+            /// The text color of the feature's description.
             public var descriptionTextColor: Color
             
+            /// Create a new instance of `Features`.
+            /// - Parameters:
+            ///   - titleFont: The font of the feature's title. Default is `.headline`.
+            ///   - descriptionFont: The font of the feature's description. Default is `.subheadline`.
+            ///   - titleTextColor: The text color of the feature's title. Default is `Color(UIColor.label)`.
+            ///   - descriptionTextColor: The text color of the feature's description. Default is `Color(UIColor.label)`.
             public init(
                 titleFont: Font                 = .headline,
                 descriptionFont: Font           = .subheadline,
@@ -164,20 +224,39 @@ extension ChangelogView {
             }
         }
         
+        /// The attributes related to the main button.
         public struct PrimaryAction {
+            /// The title of the button.
+            var title: String
+            /// The font of the button.
             public var font: Font
+            /// The corner radius of the button.
             public var cornerRadius: CGFloat
+            /// The background color of the button.
             public var backgroundColor: Color
+            /// The background gradient of the button.
+            /// If set, this overrides the background color.
             public var backgroundGradient: LinearGradient?
+            /// The text color.
             public var textColor: Color
             
+            /// Create a new instance of `PrimaryAction`.
+            /// - Parameters:
+            ///   - title: The title of the button. Default is `Continue`, declared as `String(localized: "Continue").`.
+            ///   - font: The font of the button. Default is `.title3.weight(.bold)`.
+            ///   - cornerRadius: The corner radius of the button. Default is `14`.
+            ///   - backgroundColor: The background color of the button. Default is `.accentColor`.
+            ///   - backgroundGradient: The background gradient of the button. If set, this overrides the `backgroundColor`. Default is nil.
+            ///   - textColor: The text color. Default is `.white`.
             public init(
+                title: String                       = String(localized: "Continue"),
                 font: Font                          = .title3.weight(.bold),
                 cornerRadius: CGFloat               = 14,
                 backgroundColor: Color              = .accentColor,
                 backgroundGradient: LinearGradient? = nil,
                 textColor: Color                    = .white)
             {
+                self.title = title
                 self.font = font
                 self.cornerRadius = cornerRadius
                 self.backgroundColor = backgroundColor
