@@ -36,9 +36,33 @@ There is also the possibility to style the view. You can check the `ChangelogVie
 
 There is also a handy modifier to show the changelog view, using `changelogView(changelog:style:show:onDismiss:)`. 
 
-### Result
+### Example
 
-This is how a `ChangelogView` could be rendered. 
+This is how you can render a `ChangelogView`. This is the code: 
+
+```swift
+struct ContentView: View {
+    
+    @State private var isChangelogShown: Bool = false
+    private let versioneOne: Changelog = Changelog.init(
+        version: "1.0",
+        features: [
+            Changelog.Feature(symbol: "star.fill", title: "Favorites", description: "Now you will be able to add every item to your favorites. This flag will be synced with iCloud."),
+            Changelog.Feature(symbol: "wand.and.stars", title: "Magic Restyle", description: "Using this feature you will be able to improve the quality of your pictures without having to know the details of photo editing.", color: .indigo),
+            Changelog.Feature(symbol: "bookmark.circle.fill", title: "Bookmarks", description: "Bookmark the best articles to have them available offline. You can tap on the archive to see all of your bookmarked articles.", color: .orange),
+        ]
+    )
+
+    var body: some View {
+        Button("Hello") {
+            isChangelogShown.toggle()
+        }
+        .changelogView(changelog: versioneOne, show: $isChangelogShown)
+    }
+}
+```
+
+This is how a `ChangelogView` will be rendered. 
 
 <p align="center">
     <img src="Screenshot.png" width="30%" alt="Logo">
