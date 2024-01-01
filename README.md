@@ -40,7 +40,7 @@ There is also a handy modifier to show the changelog view, using `changelogView(
 
 This is how you can render a `ChangelogView`. This is the code: 
 
-```
+```swift
 struct ContentView: View {
     
     @State private var isChangelogShown: Bool = false
