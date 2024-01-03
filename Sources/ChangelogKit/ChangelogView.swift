@@ -54,7 +54,11 @@ public struct ChangelogView: View {
     /// The action to perform when the view is dimissed. It is an optional value.
     public var onDismiss: (() -> Void)?
     
-    public init(changelog: Changelog, style: Style = ChangelogView.Style(), onDismiss: (() -> Void)? = nil) {
+    public init(
+        changelog: Changelog,
+        style: Style = ChangelogView.Style(),
+        onDismiss: (() -> Void)? = nil)
+    {
         self.changelog = changelog
         self.style = style
         self.onDismiss = onDismiss
@@ -75,7 +79,6 @@ public struct ChangelogView: View {
             
             Button(action: {
                 dismiss()
-                onDismiss?()
             }, label: {
                 Text("Continue")
                     .frame(maxWidth: .infinity)
@@ -98,30 +101,6 @@ public struct ChangelogView: View {
 }
 
 
-// MARK: - View modifier
-
-public extension View {
-    
-    /// Show the changelog view when the binding value is `true`.
-    /// - Parameters:
-    ///   - changelog: The changelog object to render.
-    ///   - style: The style of the user interface.
-    ///   - show: The binding value used to show the view.
-    ///   - onDismiss: The code to perform when view is dismissed. Default is `nil`.
-    /// - Returns: A new view.
-    func changelogView(
-        changelog: Changelog,
-        style: ChangelogView.Style = ChangelogView.Style(),
-        show: Binding<Bool>,
-        onDismiss: (() -> Void)? = nil) -> some View
-    {
-        self.sheet(isPresented: show, content: {
-            ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
-        })
-    }
-}
-
-
 // MARK: - On dismiss
 
 public extension ChangelogView {
@@ -133,6 +112,56 @@ public extension ChangelogView {
         var new = self
         new.onDismiss = action
         return new
+    }
+}
+
+
+// MARK: View Presenter Modifier
+
+struct ChangelogViewPresenter: ViewModifier {
+    
+    @Binding var isPresented: Bool
+    let provider: ChangelogsCollectionProvider?
+    let changelog: Changelog?
+    let style: ChangelogView.Style
+    let debug: Bool
+    var onDismiss: (() -> Void)?
+    
+    init(
+        isPresented: Binding<Bool>,
+        provider: ChangelogsCollectionProvider? = nil,
+        changelog: Changelog? = nil,
+        style: ChangelogView.Style = ChangelogView.Style(),
+        debug: Bool = false,
+        onDismiss: (() -> Void)? = nil)
+    {
+        guard provider != nil || changelog != nil else {
+            fatalError("At least one among provider and changelog must be valued to present a ChangelogView.")
+        }
+        self._isPresented = isPresented
+        self.provider = provider
+        // If a provider is provided, the changelog will be the current version.
+        // If a provider is not provided, the changelog will be the one passed to the init method.
+        self.changelog = provider == nil ? changelog : provider?.current
+        self.style = style
+        self.debug = debug
+        self.onDismiss = onDismiss
+    }
+    
+    func body(content: Content) -> some View {
+        if let changelog {
+            content
+                .sheet(isPresented: $isPresented, content: {
+                    ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
+                        .onAppear {
+                            if let provider {
+                                provider.markCurrentVersionChangelogAsDisplayed()
+                            }
+                        }
+                })
+        } else {
+            content
+        }
     }
 }
 
