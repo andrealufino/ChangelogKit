@@ -10,7 +10,13 @@ import Foundation
 
 // MARK: - ChangelogsCollectionProvider
 
+/// A class or struct can adhere to this protocol to create a changelog provider.
+///
+/// A changelog provider must implement the mandatory `changelogs` property and the optional
+/// function `titleBuilder(version:)`.
+/// The `changelogs` property is the array that contains all the changelogs.
 public protocol ChangelogsCollectionProvider {
+    /// The collection of changelogs.
     var changelogs: [Changelog] { get }
 }
 
@@ -88,6 +94,8 @@ public extension ChangelogsCollectionProvider {
         UserDefaults.changelogKit.removeObject(forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
     }
     
+    /// Mark the passed changelog as not displayed, removing it from the already displayed changelogs.
+    /// - Parameter changelog: The changelog to set as not displayed.
     func markChangelogAsNotDisplayed(_ changelog: Changelog) {
         var changelogs = Set(displayedChangelogVersions)
         if changelogs.remove(changelog.version) != nil {

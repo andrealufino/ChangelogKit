@@ -66,7 +66,7 @@ public struct ChangelogView: View {
     
     public var body: some View {
         VStack {
-            Text(changelog.title ?? changelog.version)
+            Text(changelog.title)
                 .font(style.title.font)
             ScrollView {
                 VStack(spacing: style.view.spacingBetweenFeatures) {

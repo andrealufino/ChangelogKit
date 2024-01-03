@@ -17,13 +17,10 @@ import SwiftUI
 /// features to the `features` property then and they will be rendered
 /// with the `ChangelogView`.
 public struct Changelog: Identifiable, Equatable, Codable, Hashable {
-    
     /// The identifier of the changelog. It is the version.
     public var id: String { version }
     /// The title of the changelog.
-    ///
-    /// > Example: This value could be "Version 1.2".
-    public var title: String? = nil
+    public var title: String
     /// The version of the changelog.
     public let version: String
     /// Array of `Feature` objects.
@@ -35,11 +32,11 @@ public struct Changelog: Identifiable, Equatable, Codable, Hashable {
     
     /// Create a new instance of `Changelog`.
     /// - Parameters:
-    ///   - title: The title of the changelog.
+    ///   - title: The title of the changelog. If nil, the value will be equal to "What's new in version _version_".
     ///   - version: The version of the changelog.
     ///   - features: The features associated with the changelog.
     public init(title: String? = nil, version: String, features: [Feature]) {
-        self.title = title
+        self.title = title ?? String(localized: "What's new in version \(version)")
         self.version = version
         self.features = features
     }
@@ -52,7 +49,7 @@ public extension Changelog {
     
     /// The `Feature` represents a new functionality added to your app.
     ///
-    /// A feature could be the addition of a "Mark as Favorite`.
+    /// > Note: A feature could be the addition of a "Mark as Favorite".
     struct Feature: Identifiable, Equatable, Codable, Hashable {
         
         /// The identifier of the feature. It is automatically generated.
