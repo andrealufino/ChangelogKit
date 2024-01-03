@@ -16,13 +16,13 @@ import SwiftUI
 /// the update of your app to the version `1.2`. You will add the
 /// features to the `features` property then and they will be rendered
 /// with the `ChangelogView`.
-public struct Changelog: Identifiable, Equatable {
+public struct Changelog: Identifiable, Equatable, Codable, Hashable {
     
-    /// The identifier of the changelog. It is automatically generated.
-    public let id: UUID = UUID()
+    /// The identifier of the changelog. It is the version.
+    public var id: String { version }
     /// The title of the changelog.
     ///
-    /// > Example: This could be "Version 1.2".
+    /// > Example: This value could be "Version 1.2".
     public var title: String? = nil
     /// The version of the changelog.
     public let version: String
@@ -43,14 +43,20 @@ public struct Changelog: Identifiable, Equatable {
         self.version = version
         self.features = features
     }
+}
+
+
+// MARK: - Feature
+
+public extension Changelog {
     
     /// The `Feature` represents a new functionality added to your app.
     ///
     /// A feature could be the addition of a "Mark as Favorite`.
-    public struct Feature: Identifiable, Equatable {
+    struct Feature: Identifiable, Equatable, Codable, Hashable {
         
         /// The identifier of the feature. It is automatically generated.
-        public let id: UUID = UUID()
+        public var id: UUID = UUID()
         /// The system symbol name to be associated with the feature.
         public let symbol: String
         /// The title of the feature.
@@ -58,7 +64,25 @@ public struct Changelog: Identifiable, Equatable {
         /// The description of the feature.
         public let description: String
         /// The color associated to the feature.
-        public var color: Color?
+        public var color: Color? {
+            set {
+                if let newValue {
+                    UIColor(newValue).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+                }
+            }
+            get {
+                // Return the color only if the rgba values are different from -1,
+                // that is the default value when no color is saved.
+                guard ![red, green, blue, alpha].contains(-1) else {
+                    return nil
+                }
+                return Color(red: red, green: green, blue: blue, opacity: alpha)
+            }
+        }
+        private var red: CGFloat    = -1
+        private var green: CGFloat  = -1
+        private var blue: CGFloat   = -1
+        private var alpha: CGFloat  = -1
         
         public static func ==(lhs: Feature, rhs: Feature) -> Bool {
             lhs.id == rhs.id
