@@ -118,46 +118,72 @@ public extension ChangelogView {
 
 // MARK: View Presenter Modifier
 
+
+/// This is the manual presenter. You pass a changelog and it will be displayed
+/// in a sheet.
 struct ChangelogViewPresenter: ViewModifier {
     
     @Binding var isPresented: Bool
-    let provider: ChangelogsCollectionProvider?
-    let changelog: Changelog?
+    let changelog: Changelog
+    let style: ChangelogView.Style
+    var onDismiss: (() -> Void)?
+    
+    init(
+        isPresented: Binding<Bool>,
+        changelog: Changelog,
+        style: ChangelogView.Style,
+        onDismiss: (() -> Void)? = nil)
+    {
+        self._isPresented = isPresented
+        self.changelog = changelog
+        self.style = style
+        self.onDismiss = onDismiss
+        
+        self.isPresented = true
+    }
+    
+    func body(content: Content) -> some View {
+        content
+            .sheet(isPresented: $isPresented, content: {
+                ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
+                    .onDisappear { isPresented = false }
+            })
+    }
+}
+
+/// This is the automatic modifier. You pass an object that conforms to
+/// `ChangelogsCollectionProvider` and the view will be presented if needed.
+///
+/// > Note: If `debug` is `true` the changelog will be always presented.
+struct ProviderChangelogViewPresenter: ViewModifier {
+    
+    @State private var isPresented: Bool = true
+    private var changelog: Changelog?
+    let provider: ChangelogsCollectionProvider
     let style: ChangelogView.Style
     let debug: Bool
     var onDismiss: (() -> Void)?
     
     init(
-        isPresented: Binding<Bool>,
-        provider: ChangelogsCollectionProvider? = nil,
-        changelog: Changelog? = nil,
+        provider: ChangelogsCollectionProvider,
         style: ChangelogView.Style = ChangelogView.Style(),
         debug: Bool = false,
         onDismiss: (() -> Void)? = nil)
     {
-        guard provider != nil || changelog != nil else {
-            fatalError("At least one among provider and changelog must be valued to present a ChangelogView.")
-        }
-        self._isPresented = isPresented
         self.provider = provider
-        // If a provider is provided, the changelog will be the current version.
-        // If a provider is not provided, the changelog will be the one passed to the init method.
-        self.changelog = provider == nil ? changelog : provider?.current
+        self.changelog = provider.current
         self.style = style
         self.debug = debug
         self.onDismiss = onDismiss
     }
     
     func body(content: Content) -> some View {
-        if let changelog {
+        if let changelog, provider.shouldCurrentVersionBeDisplayed() || debug {
             content
-                .sheet(isPresented: $isPresented, content: {
+                .sheet(isPresented: $isPresented, onDismiss: onDismiss, content: {
                     ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
-                        .onAppear {
-                            if let provider {
-                                provider.markCurrentVersionChangelogAsDisplayed()
-                            }
-                        }
+                        .onAppear { provider.markCurrentVersionChangelogAsDisplayed() }
+                        .onDisappear { isPresented = false }
                 })
         } else {
             content
@@ -212,10 +238,10 @@ extension ChangelogView {
             
             /// Create a new instance of `Title`.
             /// - Parameters:
-            ///   - font: The font of the title. Default is `.largeTitle.weight(.heavy)`.
+            ///   - font: The font of the title. Default is `.title.weight(.heavy)`.
             ///   - color: The color of the title. Default is `Color(UIColor.label)`.
             public init(
-                font: Font      = .largeTitle.weight(.heavy),
+                font: Font      = .title.weight(.heavy),
                 color: Color    = Color(UIColor.label))
             {
                 self.font = font
