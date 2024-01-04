@@ -36,7 +36,7 @@ public struct Changelog: Identifiable, Equatable, Codable, Hashable {
     ///   - version: The version of the changelog.
     ///   - features: The features associated with the changelog.
     public init(title: String? = nil, version: String, features: [Feature]) {
-        self.title = title ?? String(localized: "What's new in version \(version)")
+        self.title = title ?? String(format: String(localized: "What's new in version", bundle: .module), version)
         self.version = version
         self.features = features
     }
