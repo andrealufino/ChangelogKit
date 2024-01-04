@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "ChangelogKit",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
     ],

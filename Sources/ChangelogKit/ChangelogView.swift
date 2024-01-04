@@ -68,6 +68,7 @@ public struct ChangelogView: View {
         VStack {
             Text(changelog.title)
                 .font(style.title.font)
+                .padding(.top)
             ScrollView {
                 VStack(spacing: style.view.spacingBetweenFeatures) {
                     ForEach(changelog.features) { feature in
@@ -80,7 +81,7 @@ public struct ChangelogView: View {
             Button(action: {
                 dismiss()
             }, label: {
-                Text("Continue")
+                Text(String(localized: "Continue", bundle: .module))
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background {

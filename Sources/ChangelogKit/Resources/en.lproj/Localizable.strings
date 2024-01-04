@@ -1,0 +1,11 @@
+/* 
+  Localizable.strings
+  
+
+  Created by Andrea Mario Lufino on 04/01/24.
+  
+*/
+
+
+"Continue" = "Continue";
+"What's new in version" = "What's new in version %@";
