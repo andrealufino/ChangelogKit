@@ -21,7 +21,7 @@ public protocol ChangelogsCollectionProvider {
 }
 
 
-// MARK: - Internal methods
+// MARK: - Internal
 
 extension ChangelogsCollectionProvider {
     
@@ -54,12 +54,12 @@ extension ChangelogsCollectionProvider {
         isVersionAlreadyDisplayed(changelog.version)
     }
     
-    func shouldChangelogBeDisplayed(_ changelog: Changelog) -> Bool {
-        !isChangelogAlreadyDisplayed(changelog)
-    }
-    
     func shouldVersionBeDisplayed(_ version: String) -> Bool {
         !isVersionAlreadyDisplayed(version)
+    }
+    
+    func shouldChangelogBeDisplayed(_ changelog: Changelog) -> Bool {
+        !isChangelogAlreadyDisplayed(changelog)
     }
     
     func isCurrentChangelogAlreadyDisplayed() -> Bool {
@@ -69,24 +69,22 @@ extension ChangelogsCollectionProvider {
         
         return false
     }
-    
-    func isCurrentVersionAlreadyDisplayed() -> Bool {
-        isCurrentChangelogAlreadyDisplayed()
-    }
-    
-    func shouldCurrentChangelogBeDisplayed() -> Bool {
-        !isCurrentChangelogAlreadyDisplayed()
-    }
-    
-    func shouldCurrentVersionBeDisplayed() -> Bool {
-        !isCurrentVersionAlreadyDisplayed()
-    }
 }
 
 
-// MARK: - Public methods
+// MARK: - Public
 
 public extension ChangelogsCollectionProvider {
+    
+    /// Check if changelog for current version has already been displayed.
+    var isCurrentVersionAlreadyDisplayed: Bool {
+        isCurrentChangelogAlreadyDisplayed()
+    }
+    
+    /// Check if changelog for current version should be displayed or not.
+    var shouldCurrentChangelogBeDisplayed: Bool {
+        !isCurrentChangelogAlreadyDisplayed()
+    }
     
     /// Reset all the displayed version.
     /// > Warning: This is a destructive method, use it only if really needed.
