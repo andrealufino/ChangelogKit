@@ -47,12 +47,14 @@ public extension View {
     /// During your debug session you can set the `debug` parameter to true to always show
     /// the view, regardless of if it has already been displayed or not.
     /// - Parameters:
+    ///   - isPresented: The binding value used to show the view. This is useful to decide when to present the view, if needed.
     ///   - provider: The changelogs provider with the collection of changelogs.
     ///   - style: The style of the user interface.
     ///   - debug: When set to `true` this will ignore if the current version changelog has already been displayed and will display it anyway. Default is `false`.
     ///   - onDismiss: The code to perform when view dismissed. Default is `nil`.
     /// - Returns: A new view.
     func showCurrentChangelogIfNeeded(
+        isPresented: Binding<Bool>,
         provider: ChangelogsCollectionProvider,
         style: ChangelogView.Style = ChangelogView.Style(),
         debug: Bool = false,
@@ -60,6 +62,7 @@ public extension View {
     {
         self.modifier(
             ProviderChangelogViewPresenter(
+                isPresented: isPresented,
                 provider: provider,
                 style: style,
                 debug: debug,

@@ -158,7 +158,7 @@ struct ChangelogViewPresenter: ViewModifier {
 /// > Note: If `debug` is `true` the changelog will be always presented.
 struct ProviderChangelogViewPresenter: ViewModifier {
     
-    @State private var isPresented: Bool = true
+    @Binding var isPresented: Bool
     private var changelog: Changelog?
     let provider: ChangelogsCollectionProvider
     let style: ChangelogView.Style
@@ -166,11 +166,13 @@ struct ProviderChangelogViewPresenter: ViewModifier {
     var onDismiss: (() -> Void)?
     
     init(
+        isPresented: Binding<Bool>,
         provider: ChangelogsCollectionProvider,
         style: ChangelogView.Style = ChangelogView.Style(),
         debug: Bool = false,
         onDismiss: (() -> Void)? = nil)
     {
+        self._isPresented = isPresented
         self.provider = provider
         self.changelog = provider.current
         self.style = style
