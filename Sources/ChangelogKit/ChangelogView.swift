@@ -179,7 +179,7 @@ struct ProviderChangelogViewPresenter: ViewModifier {
     }
     
     func body(content: Content) -> some View {
-        if let changelog, provider.shouldCurrentVersionBeDisplayed() || debug {
+        if let changelog, provider.shouldCurrentChangelogBeDisplayed || debug {
             content
                 .sheet(isPresented: $isPresented, onDismiss: onDismiss, content: {
                     ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
