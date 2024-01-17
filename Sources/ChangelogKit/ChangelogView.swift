@@ -68,7 +68,7 @@ public struct ChangelogView: View {
         VStack {
             Text(changelog.title)
                 .font(style.title.font)
-                .padding(.top)
+//                .padding(.top)
             ScrollView {
                 VStack(spacing: style.view.spacingBetweenFeatures) {
                     ForEach(changelog.features) { feature in
@@ -78,24 +78,26 @@ public struct ChangelogView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             
-            Button(action: {
-                dismiss()
-            }, label: {
-                Text(String(localized: "Continue", bundle: .module))
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background {
-                        if let gradient = style.primaryAction.backgroundGradient {
-                            RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
-                                .fill(gradient)
-                        } else {
-                            RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
-                                .fill(style.primaryAction.backgroundColor)
+            if !style.primaryAction.hidden {
+                Button(action: {
+                    dismiss()
+                }, label: {
+                    Text(String(localized: "Continue", bundle: .module))
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background {
+                            if let gradient = style.primaryAction.backgroundGradient {
+                                RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
+                                    .fill(gradient)
+                            } else {
+                                RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
+                                    .fill(style.primaryAction.backgroundColor)
+                            }
                         }
-                    }
-                    .foregroundStyle(.white)
-                    .font(.title3.weight(.bold))
-            })
+                        .foregroundStyle(.white)
+                        .font(.title3.weight(.bold))
+                })
+            }
         }
         .padding()
     }
@@ -286,6 +288,8 @@ extension ChangelogView {
         public struct PrimaryAction {
             /// The title of the button.
             var title: String
+            /// If the action is hidden.
+            var hidden: Bool
             /// The font of the button.
             public var font: Font
             /// The corner radius of the button.
@@ -308,6 +312,7 @@ extension ChangelogView {
             ///   - textColor: The text color. Default is `.white`.
             public init(
                 title: String                       = String(localized: "Continue"),
+                hidden: Bool                        = false,
                 font: Font                          = .title3.weight(.bold),
                 cornerRadius: CGFloat               = 14,
                 backgroundColor: Color              = .accentColor,
@@ -315,6 +320,7 @@ extension ChangelogView {
                 textColor: Color                    = .white)
             {
                 self.title = title
+                self.hidden = hidden
                 self.font = font
                 self.cornerRadius = cornerRadius
                 self.backgroundColor = backgroundColor
