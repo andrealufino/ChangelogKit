@@ -87,11 +87,21 @@ public struct ChangelogView: View {
                         .padding()
                         .background {
                             if let gradient = style.primaryAction.backgroundGradient {
-                                RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
-                                    .fill(gradient)
+                                if style.primaryAction.useCapsuleAsShape {
+                                    Capsule()
+                                        .fill(gradient)
+                                } else {
+                                    RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
+                                        .fill(gradient)
+                                }
                             } else {
-                                RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
-                                    .fill(style.primaryAction.backgroundColor)
+                                if style.primaryAction.useCapsuleAsShape {
+                                    Capsule()
+                                        .fill(style.primaryAction.backgroundColor)
+                                } else {
+                                    RoundedRectangle(cornerRadius: style.primaryAction.cornerRadius)
+                                        .fill(style.primaryAction.backgroundColor)
+                                }
                             }
                         }
                         .foregroundStyle(.white)
@@ -292,6 +302,10 @@ extension ChangelogView {
             var hidden: Bool
             /// The font of the button.
             public var font: Font
+            /// A `Bool` value to define if the button should use
+            /// the capsule shape instead of the rounded rectangle.
+            /// If `true`, the corner radius is ignored.
+            public var useCapsuleAsShape: Bool
             /// The corner radius of the button.
             public var cornerRadius: CGFloat
             /// The background color of the button.
@@ -306,6 +320,7 @@ extension ChangelogView {
             /// - Parameters:
             ///   - title: The title of the button. Default is `Continue`, declared as `String(localized: "Continue").`.
             ///   - font: The font of the button. Default is `.title3.weight(.bold)`.
+            ///   - useCapsuleAsShape: `true` if you want the button to have a capsule shape, `false` if not.
             ///   - cornerRadius: The corner radius of the button. Default is `14`.
             ///   - backgroundColor: The background color of the button. Default is `.accentColor`.
             ///   - backgroundGradient: The background gradient of the button. If set, this overrides the `backgroundColor`. Default is nil.
@@ -314,6 +329,7 @@ extension ChangelogView {
                 title: String                       = String(localized: "Continue"),
                 hidden: Bool                        = false,
                 font: Font                          = .title3.weight(.bold),
+                useCapsuleAsShape: Bool             = true,
                 cornerRadius: CGFloat               = 14,
                 backgroundColor: Color              = .accentColor,
                 backgroundGradient: LinearGradient? = nil,
@@ -322,6 +338,7 @@ extension ChangelogView {
                 self.title = title
                 self.hidden = hidden
                 self.font = font
+                self.useCapsuleAsShape = useCapsuleAsShape
                 self.cornerRadius = cornerRadius
                 self.backgroundColor = backgroundColor
                 self.backgroundGradient = backgroundGradient
