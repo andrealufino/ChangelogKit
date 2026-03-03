@@ -10,6 +10,6 @@ import Foundation
 
 extension Bundle {
     static var appVersion: String {
-        return Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
     }
 }

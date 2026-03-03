@@ -83,7 +83,8 @@ public extension ChangelogsCollectionProvider {
     
     /// Check if changelog for current version should be displayed or not.
     var shouldCurrentChangelogBeDisplayed: Bool {
-        !isCurrentChangelogAlreadyDisplayed()
+        guard current != nil else { return false }
+        return !isCurrentChangelogAlreadyDisplayed()
     }
     
     /// Reset all the displayed version.
@@ -99,7 +100,7 @@ public extension ChangelogsCollectionProvider {
         if changelogs.remove(changelog.version) != nil {
             // Set the array again only if the element was actually removed.
             // This will skip if element is not present in the array.
-            UserDefaults.changelogKit.setValue(changelogs, forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
+            UserDefaults.changelogKit.setValue(Array(changelogs), forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
         }
     }
 }
