@@ -29,7 +29,11 @@ public struct Changelog: Identifiable, Equatable, Codable, Hashable {
     public static func ==(lhs: Changelog, rhs: Changelog) -> Bool {
         lhs.id == rhs.id
     }
-    
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     /// Create a new instance of `Changelog`.
     /// - Parameters:
     ///   - title: The title of the changelog. If nil, the value will be equal to "What's new in version _version_".
@@ -64,7 +68,16 @@ public extension Changelog {
         public var color: Color? {
             set {
                 if let newValue {
-                    UIColor(newValue).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+                    var r: CGFloat = -1
+                    var g: CGFloat = -1
+                    var b: CGFloat = -1
+                    var a: CGFloat = -1
+                    if UIColor(newValue).getRed(&r, green: &g, blue: &b, alpha: &a) {
+                        red = r
+                        green = g
+                        blue = b
+                        alpha = a
+                    }
                 }
             }
             get {
@@ -84,7 +97,11 @@ public extension Changelog {
         public static func ==(lhs: Feature, rhs: Feature) -> Bool {
             lhs.id == rhs.id
         }
-        
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+
         /// Create a new instance of `Feature`.
         /// - Parameters:
         ///   - symbol: The symbol associated to the feature.
@@ -105,7 +122,7 @@ public extension Changelog {
 
 extension Changelog {
     
-    static let versioneOne: Changelog = Changelog.init(
+    static let versionOne: Changelog = Changelog.init(
         version: "1.0",
         features: [
             Feature(symbol: "star.fill", title: "Favorites", description: "Now you will be able to add every item to your favorites. This flag will be synced with iCloud."),
