@@ -68,7 +68,6 @@ public struct ChangelogView: View {
         VStack {
             Text(changelog.title)
                 .font(style.title.font)
-//                .padding(.top)
             ScrollView {
                 VStack(spacing: style.view.spacingBetweenFeatures) {
                     ForEach(changelog.features) { feature in
@@ -80,9 +79,10 @@ public struct ChangelogView: View {
             
             if !style.primaryAction.hidden {
                 Button(action: {
+                    onDismiss?()
                     dismiss()
                 }, label: {
-                    Text(String(localized: "Continue", bundle: .module))
+                    Text(style.primaryAction.title ?? String(localized: "Continue", bundle: .module))
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background {
@@ -104,8 +104,8 @@ public struct ChangelogView: View {
                                 }
                             }
                         }
-                        .foregroundStyle(.white)
-                        .font(.title3.weight(.bold))
+                        .foregroundStyle(style.primaryAction.textColor)
+                        .font(style.primaryAction.font)
                 })
             }
         }
@@ -196,7 +196,7 @@ struct ProviderChangelogViewPresenter: ViewModifier {
         if let changelog, provider.shouldCurrentChangelogBeDisplayed || debug {
             content
                 .sheet(isPresented: $isPresented, onDismiss: onDismiss, content: {
-                    ChangelogView(changelog: changelog, style: style, onDismiss: onDismiss)
+                    ChangelogView(changelog: changelog, style: style)
                         .onAppear { provider.markCurrentVersionChangelogAsDisplayed() }
                         .onDisappear { isPresented = false }
                 })
@@ -296,10 +296,10 @@ extension ChangelogView {
         
         /// The attributes related to the main button.
         public struct PrimaryAction {
-            /// The title of the button.
-            var title: String
+            /// The title of the button. When `nil`, uses the package-localized default "Continue".
+            public var title: String?
             /// If the action is hidden.
-            var hidden: Bool
+            public var hidden: Bool
             /// The font of the button.
             public var font: Font
             /// A `Bool` value to define if the button should use
@@ -318,7 +318,7 @@ extension ChangelogView {
             
             /// Create a new instance of `PrimaryAction`.
             /// - Parameters:
-            ///   - title: The title of the button. Default is `Continue`, declared as `String(localized: "Continue").`.
+            ///   - title: The title of the button. Pass `nil` (default) to use the package-localized "Continue".
             ///   - font: The font of the button. Default is `.title3.weight(.bold)`.
             ///   - useCapsuleAsShape: `true` if you want the button to have a capsule shape, `false` if not.
             ///   - cornerRadius: The corner radius of the button. Default is `14`.
@@ -326,7 +326,7 @@ extension ChangelogView {
             ///   - backgroundGradient: The background gradient of the button. If set, this overrides the `backgroundColor`. Default is nil.
             ///   - textColor: The text color. Default is `.white`.
             public init(
-                title: String                       = String(localized: "Continue"),
+                title: String?                      = nil,
                 hidden: Bool                        = false,
                 font: Font                          = .title3.weight(.bold),
                 useCapsuleAsShape: Bool             = true,
@@ -353,7 +353,7 @@ extension ChangelogView {
 
 #Preview {
     ChangelogView(
-        changelog: Changelog.versioneOne,
+        changelog: Changelog.versionOne,
         style: ChangelogView.Style(
             primaryAction: ChangelogView.Style.PrimaryAction(
                 backgroundGradient: LinearGradient(colors: [.blue, .indigo], startPoint: .bottomLeading, endPoint: .topTrailing)
