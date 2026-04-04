@@ -9,7 +9,7 @@ import Foundation
 
 
 extension UserDefaults {
-    static let changelogKit = UserDefaults(suiteName: "ChangelogKit")!
+    static let changelogKit: UserDefaults = UserDefaults(suiteName: "ChangelogKit") ?? .standard
     
     enum ChangelogKitKeys {
         static let displayedChangelogVersionsKey = "displayedChangelogVersions"

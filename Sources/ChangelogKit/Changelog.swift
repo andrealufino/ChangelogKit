@@ -9,36 +9,52 @@ import Foundation
 import SwiftUI
 
 
-/// A `Changelog` is a structure that represents a version and the
-/// features associated with it. 
+/// Represents a single app version and the features introduced in it.
 ///
-/// For example you can create a `Changelog` object to represents
-/// the update of your app to the version `1.2`. You will add the
-/// features to the `features` property then and they will be rendered
-/// with the `ChangelogView`.
+/// Create one `Changelog` per app version and collect them in a type that conforms
+/// to `ChangelogsCollectionProvider`. The associated `ChangelogView` renders the
+/// features in a card-based layout grouped by section.
+///
+/// ```swift
+/// let changelog = Changelog(
+///     version: "2.0",
+///     features: [
+///         Changelog.Feature(symbol: "star.fill", title: "Favorites", description: "..."),
+///     ]
+/// )
+/// ```
 public struct Changelog: Identifiable, Equatable, Codable, Hashable {
-    /// The identifier of the changelog. It is the version.
+
+    /// The unique identifier of the changelog. Equal to `version`.
     public var id: String { version }
-    /// The title of the changelog.
+    /// The internal title of the changelog, used for legacy Codable compatibility.
+    ///
+    /// The `ChangelogView` no longer renders this title directly — it uses the
+    /// localized "What's new" navigation title instead. This property is kept
+    /// to preserve Codable round-trip compatibility.
+    @available(*, deprecated, message: "The title is no longer rendered by ChangelogView. It is kept for Codable compatibility only.")
     public var title: String
-    /// The version of the changelog.
+    /// The version string this changelog describes (e.g. `"1.2.1"`).
     public let version: String
-    /// Array of `Feature` objects.
+    /// The features introduced in this version.
     public let features: [Feature]
-    
+
+    /// Two changelogs are equal when they share the same version string.
     public static func ==(lhs: Changelog, rhs: Changelog) -> Bool {
         lhs.id == rhs.id
     }
 
+    /// Hashes the changelog using its version string.
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 
-    /// Create a new instance of `Changelog`.
+    /// Creates a new `Changelog`.
     /// - Parameters:
-    ///   - title: The title of the changelog. If nil, the value will be equal to "What's new in version _version_".
-    ///   - version: The version of the changelog.
-    ///   - features: The features associated with the changelog.
+    ///   - title: An internal title. Defaults to the localized "What's new in version X.Y.Z"
+    ///     string. Not rendered by `ChangelogView`.
+    ///   - version: The version string (e.g. `"1.2.1"`).
+    ///   - features: The features to display for this version.
     public init(title: String? = nil, version: String, features: [Feature]) {
         self.title = title ?? String(format: String(localized: "What's new in version", bundle: .module), version)
         self.version = version
@@ -56,6 +72,29 @@ public extension Changelog {
     /// > Note: A feature could be the addition of a "Mark as Favorite".
     struct Feature: Identifiable, Equatable, Codable, Hashable {
         
+        // MARK: - PinBehavior
+
+        /// Defines how long a feature remains visible in the pinned highlights section
+        /// when the app is updated to a newer version.
+        public enum PinBehavior: Codable, Hashable {
+            /// The feature is never shown in the pinned section. Default.
+            case never
+            /// The feature is shown as long as the app version matches the same
+            /// major, minor, and patch as the changelog version it belongs to.
+            case untilPatchChanges
+            /// The feature is shown as long as the app version shares the same
+            /// major and minor as the changelog version it belongs to.
+            /// Survives hotfix updates (e.g. 1.2.0 → 1.2.1).
+            case untilMinorChanges
+            /// The feature is shown as long as the app version shares the same
+            /// major as the changelog version it belongs to.
+            /// Survives all minor and patch updates within the same major.
+            case untilMajorChanges
+            /// The feature is always shown in the pinned section until the developer
+            /// explicitly removes or changes it.
+            case always
+        }
+
         /// The identifier of the feature. It is automatically generated.
         public var id: UUID = UUID()
         /// The system symbol name to be associated with the feature.
@@ -64,6 +103,9 @@ public extension Changelog {
         public let title: String
         /// The description of the feature.
         public let description: String
+        /// Defines how long this feature appears in the pinned highlights section
+        /// when the app is updated. Defaults to `.never`.
+        public let pinBehavior: PinBehavior
         /// The color associated to the feature.
         public var color: Color? {
             set {
@@ -94,10 +136,12 @@ public extension Changelog {
         private var blue: CGFloat   = -1
         private var alpha: CGFloat  = -1
         
+        /// Two features are equal when they share the same auto-generated `id`.
         public static func ==(lhs: Feature, rhs: Feature) -> Bool {
             lhs.id == rhs.id
         }
 
+        /// Hashes the feature using its auto-generated `id`.
         public func hash(into hasher: inout Hasher) {
             hasher.combine(id)
         }
@@ -108,12 +152,41 @@ public extension Changelog {
         ///   - title: The title of the feature.
         ///   - description: The description of the feature.
         ///   - color: The color associated to this feature.
-        public init(symbol: String, title: String, description: String, color: Color? = nil) {
+        ///   - pinBehavior: Defines how long this feature appears in the pinned highlights
+        ///     section when the app updates. Defaults to `.never`.
+        public init(symbol: String, title: String, description: String, color: Color? = nil, pinBehavior: PinBehavior = .never) {
             self.symbol = symbol
             self.title = title
             self.description = description
+            self.pinBehavior = pinBehavior
             self.color = color
         }
+    }
+}
+
+
+// MARK: - SemVer
+
+/// Internal utility for parsing and comparing semantic version strings.
+///
+/// Supports both `major.minor` and `major.minor.patch` formats.
+/// Missing components default to `0` (e.g. `"1.2"` is treated as `"1.2.0"`).
+struct SemVer {
+    let major: Int
+    let minor: Int
+    let patch: Int
+
+    /// Parses a version string into its major, minor, and patch components.
+    ///
+    /// Accepts both `major.minor` and `major.minor.patch` formats. Any missing
+    /// component defaults to `0`, so `"1.2"` is equivalent to `"1.2.0"`.
+    ///
+    /// - Parameter string: A version string such as `"1.2"` or `"1.2.3"`.
+    init(_ string: String) {
+        let parts = string.split(separator: ".").compactMap { Int($0) }
+        major = parts.count > 0 ? parts[0] : 0
+        minor = parts.count > 1 ? parts[1] : 0
+        patch = parts.count > 2 ? parts[2] : 0
     }
 }
 
