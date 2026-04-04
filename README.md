@@ -6,82 +6,121 @@
     ChangelogKit
 </h1>
 
+A Swift package for displaying "What's New" changelog screens in iOS apps. Zero external dependencies.
 
-A Swift package designed to easily show the new features of your app.
+### Requirements
+
+- iOS 17+
+- Swift 5.9+
 
 ### Why
 
-I had the need to develop a view to showcase the new features of my app and I did not want to rely on something external. This is why I deveoped ChangelogKit.
-Take this as is and use it as you want. 
+I needed a lightweight, native SwiftUI view to showcase new features in my apps without relying on external dependencies. ChangelogKit is the result.
 
-### Information
+### Installation
 
-This is developed for SwiftUI and the minimum iOS target is iOS 17. The code is fully documented using the Xcode markup. 
+Add the package via Swift Package Manager using the repository URL.
 
-### How to use it
+---
 
-You create a `Changelog` object that is then passed to the `ChangelogView` that will render it. 
-A changelog is composed of: 
-- title (that will be visible on top of the `ChangelogView`)
-- version (used as a title in case title is nil)
-- set of features
+### Core Concepts
 
-A `Feature` has these properties:
-- symbol that is a `String` and is the image shown on the left of a feature
-- title
-- description
-- color that is used as a tint for the symbol
+#### `Changelog`
 
-There is also the possibility to style the view. You can check the `ChangelogView.Style` structure to learn more about it. 
+Represents the changelog for a specific version of your app.
 
-There is also a handy modifier to show the changelog view, using `changelogView(changelog:style:show:onDismiss:)`. 
+```swift
+Changelog(version: "2.0", features: [
+    Changelog.Feature(
+        symbol: "star.fill",
+        title: "Favorites",
+        description: "Add any item to your favorites. Synced with iCloud.",
+        color: .yellow,
+        pinBehavior: .untilMinorChanges
+    )
+])
+```
 
-### Example
+> `title` on `Changelog` is deprecated as of v2.0. The view always shows the localized "What's New" heading.
 
-#### Use ChangelogsCollectionProvider
+#### `Changelog.Feature`
 
-`ChangelogsCollectionProvider` is a protocol and is the preferred way to deal with `ChangelogKit`. Passing it to the `showCurrentChangelogIfNeeded(...)` modifier will allow to show the right changelog for the current version. The version in the Info.plist file and in the `version` property of the changelog must be the same to make this mechanism works.
+A single entry in a changelog.
 
-This is an example of how to use it: 
+| Property | Type | Description |
+|----------|------|-------------|
+| `symbol` | `String` | SF Symbol name |
+| `title` | `String` | Feature title |
+| `description` | `String` | Feature description |
+| `color` | `Color?` | Tint color for the symbol icon |
+| `pinBehavior` | `PinBehavior` | Controls visibility in the pinned highlights section |
 
-This is the `ChangelogsProvider` structure.
+#### `Changelog.Feature.PinBehavior`
+
+Controls how long a feature appears in the "Highlights" section across version updates.
+
+```swift
+enum PinBehavior {
+    case never              // never shown in highlights (default)
+    case untilPatchChanges  // shown while major.minor.patch matches
+    case untilMinorChanges  // shown while major.minor matches — survives hotfixes
+    case untilMajorChanges  // shown while major matches — survives minor/patch updates
+    case always             // always shown until removed by the developer
+}
+```
+
+---
+
+### Usage
+
+#### Option 1 — `ChangelogsCollectionProvider` (recommended)
+
+Implement the protocol to manage your full changelog history. The framework handles version tracking via `UserDefaults` and automatically computes which features to pin.
 
 ```swift
 struct ChangelogsProvider: ChangelogsCollectionProvider {
-    
+
     var changelogs: [Changelog] {
         [
-            Changelog.init(
-                version: "1.0",
-                features: [
-                    Changelog.Feature(symbol: "star.fill", title: "Favorites", description: "Now you will be able to add every item to your favorites. This flag will be synced with iCloud."),
-                    Changelog.Feature(symbol: "wand.and.stars", title: "Magic Restyle", description: "Using this feature you will be able to improve the quality of your pictures without having to know the details of photo editing.", color: .indigo),
-                    Changelog.Feature(symbol: "bookmark.circle.fill", title: "Bookmarks", description: "Bookmark the best articles to have them available offline. You can tap on the archive to see all of your bookmarked articles.", color: .orange),
-                ]
-            ),
-            
-            Changelog.init(
-                version: "1.2",
-                features: [
-                    Changelog.Feature(symbol: "star.fill", title: "Favorites", description: "Now you will be able to add every item to your favorites. This flag will be synced with iCloud."),
-                    Changelog.Feature(symbol: "wand.and.stars", title: "Magic Restyle", description: "Using this feature you will be able to improve the quality of your pictures without having to know the details of photo editing.", color: .indigo),
-                    Changelog.Feature(symbol: "bookmark.circle.fill", title: "Bookmarks", description: "Bookmark the best articles to have them available offline. You can tap on the archive to see all of your bookmarked articles.", color: .orange),
-                ]
-            )
+            Changelog(version: "1.0", features: [
+                Changelog.Feature(
+                    symbol: "star.fill",
+                    title: "Favorites",
+                    description: "Add any item to your favorites. Synced with iCloud.",
+                    color: .yellow,
+                    pinBehavior: .untilMinorChanges
+                ),
+                Changelog.Feature(
+                    symbol: "wand.and.stars",
+                    title: "Magic Restyle",
+                    description: "Improve photo quality automatically.",
+                    color: .indigo
+                )
+            ]),
+
+            Changelog(version: "2.0", features: [
+                Changelog.Feature(
+                    symbol: "sparkles",
+                    title: "Highlights",
+                    description: "Pinned features from previous versions are now shown at the top.",
+                    color: .orange,
+                    pinBehavior: .untilMajorChanges
+                )
+            ])
         ]
     }
 }
 ```
 
-This is the view where the provider is used. 
+Use the `.showCurrentChangelogIfNeeded` modifier to present the changelog automatically once per version:
 
 ```swift
 struct ContentView: View {
-    
-    @State private var isChangelogShown: Bool = false
+
+    @State private var isChangelogShown = false
 
     var body: some View {
-        Button("Hello") {
+        Button("Show changelog") {
             isChangelogShown.toggle()
         }
         .showCurrentChangelogIfNeeded(
@@ -92,35 +131,106 @@ struct ContentView: View {
 }
 ```
 
-#### Init a ChangelogView and use it
+The modifier automatically:
+- matches the current app version (from `CFBundleShortVersionString`)
+- tracks already-displayed versions in `UserDefaults`
+- passes the computed `pinnedFeatures` to the view
 
-This is how you can render a `ChangelogView`. This is the code: 
+#### Option 2 — Manual `ChangelogView`
+
+Present a specific changelog directly:
 
 ```swift
 struct ContentView: View {
-    
-    @State private var isChangelogShown: Bool = false
-    private let versioneOne: Changelog = Changelog.init(
-        version: "1.0",
-        features: [
-            Changelog.Feature(symbol: "star.fill", title: "Favorites", description: "Now you will be able to add every item to your favorites. This flag will be synced with iCloud."),
-            Changelog.Feature(symbol: "wand.and.stars", title: "Magic Restyle", description: "Using this feature you will be able to improve the quality of your pictures without having to know the details of photo editing.", color: .indigo),
-            Changelog.Feature(symbol: "bookmark.circle.fill", title: "Bookmarks", description: "Bookmark the best articles to have them available offline. You can tap on the archive to see all of your bookmarked articles.", color: .orange),
-        ]
-    )
+
+    @State private var isChangelogShown = false
+
+    private let changelog = Changelog(version: "2.0", features: [
+        Changelog.Feature(
+            symbol: "sparkles",
+            title: "Highlights",
+            description: "Pinned features from previous versions are now shown at the top.",
+            color: .orange
+        )
+    ])
 
     var body: some View {
-        Button("Hello") {
+        Button("Show changelog") {
             isChangelogShown.toggle()
         }
-        .sheet(isPresented: $isChangelogShown, changelog: versionOne)
+        .sheet(isPresented: $isChangelogShown, changelog: changelog)
     }
 }
 ```
 
+---
 
-This is how a `ChangelogView` will be rendered. 
+### Styling
+
+Customize the appearance via `ChangelogView.Style`:
+
+```swift
+let style = ChangelogView.Style(
+    view: .init(
+        spacingBetweenSections: 24,
+        spacingBetweenHeaderAndCard: 8,
+        spacingBetweenFeatures: 8,
+        contentPadding: 12
+    ),
+    features: .init(
+        titleFont: .headline,
+        descriptionFont: .subheadline,
+        titleTextColor: Color(UIColor.label),
+        descriptionTextColor: Color(UIColor.secondaryLabel)
+    ),
+    primaryAction: .init(
+        title: nil,             // nil = localized "Continue"
+        hidden: false,
+        font: .title3.weight(.bold),
+        useCapsuleAsShape: true,
+        cornerRadius: 14,
+        backgroundColor: .accentColor,
+        backgroundGradient: nil,
+        textColor: .white
+    ),
+    card: .init(
+        backgroundColor: Color(UIColor.secondarySystemBackground),
+        cornerRadius: 16,
+        shadowColor: .clear,
+        shadowRadius: 0,
+        shadowOffset: .zero
+    ),
+    featureIcon: .init(
+        size: 24,
+        containerShape: .roundedSquare(radius: 10),  // .circle / .roundedSquare(radius:) / .none
+        containerSize: 44,
+        containerColor: Color(UIColor.tertiarySystemBackground)
+    ),
+    sectionHeader: .init(
+        font: .caption.weight(.semibold),
+        color: Color(UIColor.secondaryLabel),
+        uppercased: true,
+        pinnedTitle: nil,           // nil = localized "Highlights"
+        currentVersionTitle: nil    // nil = automatic "Version X.Y.Z"
+    ),
+    featureDivider: .init(
+        visible: true,
+        color: Color(UIColor.separator)
+    )
+)
+```
+
+Pass the style to any presenter:
+
+```swift
+.sheet(isPresented: $show, changelog: changelog, style: style)
+.showCurrentChangelogIfNeeded(isPresented: $show, provider: provider, style: style)
+```
+
+---
+
+### Screenshot
 
 <p align="center">
-    <img src="Screenshot.png" width="30%" alt="Logo">
+    <img src="Screenshot.png" width="30%" alt="ChangelogKit screenshot">
 </p>
