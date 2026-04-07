@@ -26,6 +26,8 @@ struct SectionHeaderView: View {
             .font(style.font)
             .foregroundStyle(style.color)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityLabel(text)
     }
 }
 
@@ -59,6 +61,8 @@ struct FeatureRowView: View {
             }
         }
         .padding(style.view.contentPadding)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(feature.title). \(feature.description)")
     }
 
     // MARK: Private
