@@ -47,14 +47,14 @@ extension ChangelogsCollectionProvider {
 
     /// The changelog whose version matches the current app version, or `nil` if
     /// no matching changelog exists or the app version cannot be determined.
-    var current: Changelog? {
+    public var current: Changelog? {
         changelogs.first { $0.version == Bundle.appVersion }
     }
 
     /// Marks the changelog for the current app version as displayed.
     ///
     /// Has no effect if no changelog matches the current version.
-    func markCurrentVersionChangelogAsDisplayed() {
+    public func markCurrentVersionChangelogAsDisplayed() {
         if let current {
             markChangelogAsDisplayed(current)
         }
