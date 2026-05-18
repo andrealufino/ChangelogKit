@@ -1,0 +1,12 @@
+schemaVersion: 1
+enabledWorkflows:
+  - swift-package
+  - xcode-ide
+debug: true
+sentryDisabled: false
+sessionDefaults:
+  workspacePath: .swiftpm/xcode/package.xcworkspace
+  scheme: ChangelogKit
+setupPreferences:
+  platforms:
+    - iOS
