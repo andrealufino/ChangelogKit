@@ -1,0 +1,9 @@
+/*
+  Localizable.strings (German)
+*/
+
+"Continue" = "Weiter";
+"What's new in version" = "Was ist neu in Version %@";
+"What's new" = "Was ist neu";
+"Highlights" = "Highlights";
+"Version" = "Version %@";
