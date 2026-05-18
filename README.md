@@ -136,6 +136,20 @@ The modifier automatically:
 - tracks already-displayed versions in `UserDefaults`
 - passes the computed `pinnedFeatures` to the view
 
+If you need to drive the presentation yourself (for example, when the changelog is part of a custom onboarding flow) the protocol exposes these public members on any conforming type:
+
+```swift
+var current: Changelog?                                  // changelog matching the current app version, or nil
+var isCurrentVersionAlreadyDisplayed: Bool               // whether the current version was already shown
+var shouldCurrentChangelogBeDisplayed: Bool              // convenience: there is a matching changelog and it was not shown yet
+var pinnedFeatures: [Changelog.Feature]                  // features from past versions, filtered by their `pinBehavior`
+
+func markCurrentVersionChangelogAsDisplayed()            // marks the current-version changelog as displayed
+func markChangelogAsDisplayed(_ changelog: Changelog)    // marks an arbitrary changelog as displayed
+func markChangelogAsNotDisplayed(_ changelog: Changelog) // clears the displayed flag for a given changelog
+func resetDisplayedChangelogs()                          // clears all stored display flags
+```
+
 #### Option 2 — Manual `ChangelogView`
 
 Present a specific changelog directly:
