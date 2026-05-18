@@ -45,31 +45,6 @@ extension ChangelogsCollectionProvider {
         UserDefaults.changelogKit.value(forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey) as? [String] ?? []
     }
 
-    /// The changelog whose version matches the current app version, or `nil` if
-    /// no matching changelog exists or the app version cannot be determined.
-    var current: Changelog? {
-        changelogs.first { $0.version == Bundle.appVersion }
-    }
-
-    /// Marks the changelog for the current app version as displayed.
-    ///
-    /// Has no effect if no changelog matches the current version.
-    func markCurrentVersionChangelogAsDisplayed() {
-        if let current {
-            markChangelogAsDisplayed(current)
-        }
-    }
-
-    /// Marks the given changelog as displayed by persisting its version string.
-    ///
-    /// - Parameter changelog: The changelog to mark as displayed.
-    func markChangelogAsDisplayed(_ changelog: Changelog) {
-        var changelogs = Set(displayedChangelogVersions)
-        if changelogs.insert(changelog.version).inserted {
-            UserDefaults.changelogKit.setValue(Array(changelogs), forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
-        }
-    }
-
     /// Returns `true` if the given version string has already been displayed.
     ///
     /// - Parameter version: The version string to check.
@@ -113,18 +88,48 @@ extension ChangelogsCollectionProvider {
 // MARK: - Public
 
 public extension ChangelogsCollectionProvider {
-    
-    /// Check if changelog for current version has already been displayed.
-    var isCurrentVersionAlreadyDisplayed: Bool {
-        isCurrentChangelogAlreadyDisplayed()
-    }
-    
     /// Check if changelog for current version should be displayed or not.
     var shouldCurrentChangelogBeDisplayed: Bool {
         guard current != nil else { return false }
         return !isCurrentChangelogAlreadyDisplayed()
     }
-    
+
+    /// The changelog whose version matches the current app version, or `nil` if
+    /// no matching changelog exists or the app version cannot be determined.
+    var current: Changelog? {
+        changelogs.first { $0.version == Bundle.appVersion }
+    }
+
+    /// Marks the changelog for the current app version as displayed.
+    ///
+    /// Has no effect if no changelog matches the current version.
+    func markCurrentVersionChangelogAsDisplayed() {
+        if let current {
+            markChangelogAsDisplayed(current)
+        }
+    }
+
+    /// Marks the given changelog as displayed by persisting its version string.
+    ///
+    /// - Parameter changelog: The changelog to mark as displayed.
+    func markChangelogAsDisplayed(_ changelog: Changelog) {
+        var changelogs = Set(displayedChangelogVersions)
+        if changelogs.insert(changelog.version).inserted {
+            UserDefaults.changelogKit.setValue(Array(changelogs), forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
+        }
+    }
+
+    /// Mark the passed changelog as not displayed, removing it from the already displayed changelogs.
+    /// - Parameter changelog: The changelog to set as not displayed.
+    func markChangelogAsNotDisplayed(_ changelog: Changelog) {
+        var changelogs = Set(displayedChangelogVersions)
+        if changelogs.remove(changelog.version) != nil {
+            // Set the array again only if the element was actually removed.
+            // This will skip if element is not present in the array.
+            UserDefaults.changelogKit.setValue(Array(changelogs), forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
+        }
+    }
+
     /// Returns the features from past changelog versions that should appear in the
     /// pinned highlights section, based on each feature's `pinBehavior` and the
     /// current app version.
@@ -167,15 +172,9 @@ public extension ChangelogsCollectionProvider {
     func resetDisplayedChangelogs() {
         UserDefaults.changelogKit.removeObject(forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
     }
-    
-    /// Mark the passed changelog as not displayed, removing it from the already displayed changelogs.
-    /// - Parameter changelog: The changelog to set as not displayed.
-    func markChangelogAsNotDisplayed(_ changelog: Changelog) {
-        var changelogs = Set(displayedChangelogVersions)
-        if changelogs.remove(changelog.version) != nil {
-            // Set the array again only if the element was actually removed.
-            // This will skip if element is not present in the array.
-            UserDefaults.changelogKit.setValue(Array(changelogs), forKey: UserDefaults.ChangelogKitKeys.displayedChangelogVersionsKey)
-        }
+
+    /// Check if changelog for current version has already been displayed.
+    var isCurrentVersionAlreadyDisplayed: Bool {
+        isCurrentChangelogAlreadyDisplayed()
     }
 }
