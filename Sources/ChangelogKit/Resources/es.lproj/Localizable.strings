@@ -1,0 +1,9 @@
+/*
+  Localizable.strings (Spanish)
+*/
+
+"Continue" = "Continuar";
+"What's new in version" = "Novedades de la versión %@";
+"What's new" = "Novedades";
+"Highlights" = "Destacados";
+"Version" = "Versión %@";

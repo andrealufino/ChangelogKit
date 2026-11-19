@@ -8,7 +8,7 @@ SwiftUI package for displaying "What's New" / changelog screens in iOS apps. Zer
 
 - **Platform**: iOS 17+
 - **Swift tools**: 5.9
-- **Default localization**: English (`en`), Italian (`it`) also bundled
+- **Default localization**: English (`en`); German (`de`), Spanish (`es`), French (`fr`) and Italian (`it`) also bundled
 - **Latest released version**: see git tags on `main`
 
 ## Project Structure
@@ -25,7 +25,10 @@ Sources/ChangelogKit/
         View+ChangelogKit.swift              — public View extensions: .sheet() and .showCurrentChangelogIfNeeded()
     Resources/
         Base.lproj/Localizable.strings
+        de.lproj/Localizable.strings
         en.lproj/Localizable.strings
+        es.lproj/Localizable.strings
+        fr.lproj/Localizable.strings
         it.lproj/Localizable.strings
 Tests/ChangelogKitTests/
     ChangelogKitTests.swift                  — placeholder, test coverage is a good first contribution
