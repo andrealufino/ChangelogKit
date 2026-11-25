@@ -162,10 +162,14 @@ protocol ChangelogsCollectionProvider {
 
 ## Build & Test
 
+The package is iOS-only (it imports `UIKit`), so `swift build` / `swift test` fail: they target macOS. Build and test against an iOS Simulator instead:
+
 ```bash
-swift build
-swift test
+xcodebuild -scheme ChangelogKit -destination 'generic/platform=iOS Simulator' build
+xcodebuild -scheme ChangelogKit -destination 'platform=iOS Simulator,name=iPhone 17' test
 ```
+
+Any available simulator works for `test` (`xcodebuild -scheme ChangelogKit -showdestinations` lists them). With XcodeBuildMCP, use the simulator tools rather than `swift_package_build`, which also targets macOS.
 
 ## Branching Model (git-flow)
 
